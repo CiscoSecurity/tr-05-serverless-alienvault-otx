@@ -8,10 +8,6 @@ def get_jwt():
     """
     Parse the incoming request's Authorization Bearer JWT for some credentials.
     Validate its signature against the application's secret key.
-
-    NOTE. This function is just an example of how one can read and check
-    anything before passing to an API endpoint, and thus it may be modified in
-    any way, replaced by another function, or even removed from the module.
     """
 
     try:
@@ -26,10 +22,6 @@ def get_json(schema):
     """
     Parse the incoming request's data as JSON.
     Validate it against the specified schema.
-
-    NOTE. This function is just an example of how one can read and check
-    anything before passing to an API endpoint, and thus it may be modified in
-    any way, replaced by another function, or even removed from the module.
     """
 
     data = request.get_json(force=True, silent=True, cache=False)

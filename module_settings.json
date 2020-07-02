@@ -1,6 +1,8 @@
 {
   "name": "AlienVault OTX",
-  "jwt": {},
+  "jwt": {
+    "key": "AlienVault OTX API Key"
+  },
   "region": {
     "us": null,
     "eu": null,
