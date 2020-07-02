@@ -1,0 +1,9 @@
+{
+  "name": "AlienVault OTX",
+  "jwt": {},
+  "region": {
+    "us": null,
+    "eu": null,
+    "apjc": null
+  }
+}
