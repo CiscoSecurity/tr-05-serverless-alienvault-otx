@@ -26,7 +26,7 @@ def client(secret_key):
 def valid_jwt(client):
     header = {'alg': 'HS256'}
 
-    payload = {'username': 'gdavoian', 'superuser': False}
+    payload = {'key': 'In AlienVault OTX we trust!'}
 
     secret_key = client.application.secret_key
 
@@ -48,7 +48,7 @@ def invalid_jwt(valid_jwt):
     payload = jwt_decode(payload)
 
     # Corrupt the valid JWT by tampering with its payload.
-    payload['superuser'] = True
+    payload['key'] += ' Not really...'
 
     payload = jwt_encode(payload)
 
