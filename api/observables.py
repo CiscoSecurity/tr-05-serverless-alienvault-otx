@@ -3,7 +3,33 @@ from inspect import isabstract
 from urllib.parse import quote
 
 
+def _concrete_subclasses_of(cls):
+    subclasses = set()
+
+    for subcls in cls.__subclasses__():
+        if not isabstract(subcls):
+            subclasses.add(subcls)
+
+        subclasses.update(_concrete_subclasses_of(subcls))
+
+    return subclasses
+
+
 class Observable(ABC):
+    """Abstract base class representing one particular type of observables."""
+
+    @classmethod
+    def instance_for(cls, type, value):
+        """
+        Create an observable instance of the given type with the given value.
+
+        If the current class does not have any concrete subclasses that
+        correspond to the given observable type, then `None` is returned.
+        """
+
+        for subcls in _concrete_subclasses_of(cls):
+            if subcls.type() == type:
+                return subcls(value)
 
     @staticmethod
     @abstractmethod
@@ -23,18 +49,20 @@ class Observable(ABC):
     def __init__(self, value):
         self.value = value
 
-    def refer(self):
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.value!r})'
+
+    def refer(self, url):
         return {
             'id': (
-                'ref-avotx-search-'
-                f'{self.type()}-{quote(self.value, safe="")}'
+                f'ref-avotx-search-{self.type()}-{quote(self.value, safe="")}'
             ),
             'title': f'Search for this {self.name()}',
             'description': f'Lookup this {self.name()} on AlienVault OTX',
-            'url': (
-                'https://otx.alienvault.com/indicator/'
-                f'{self.category()}/{self.value}'
-            ),
+            'url': f'{url}/indicator/{self.category()}/{self.value}',
             'categories': ['Search', 'AlienVault OTX'],
         }
 
@@ -148,21 +176,3 @@ class URL(Observable):
     @staticmethod
     def category():
         return 'url'
-
-
-def _concrete_subclasses_of(cls):
-    subclasses = set()
-
-    for subcls in cls.__subclasses__():
-        if not isabstract(subcls):
-            subclasses.add(subcls)
-
-        subclasses.update(_concrete_subclasses_of(subcls))
-
-    return subclasses
-
-
-def observable_instance_for(type, value):
-    for cls in _concrete_subclasses_of(Observable):
-        if cls.type() == type:
-            return cls(value)
