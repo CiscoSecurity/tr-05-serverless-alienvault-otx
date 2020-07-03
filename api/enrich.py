@@ -20,8 +20,8 @@ def deliberate_observables():
 
 @enrich_api.route('/observe/observables', methods=['POST'])
 def observe_observables():
-    _ = get_jwt()
     _ = get_observables()
+    _ = get_jwt()
     return jsonify_data({})
 
 
@@ -31,16 +31,13 @@ def refer_observables():
 
     data = []
 
-    url = current_app.config['AVOTX_URL']
-
     for observable in observables:
         observable = Observable.instance_for(**observable)
         if observable is None:
             continue
 
+        url = current_app.config['AVOTX_URL']
         reference = observable.refer(url)
-        if reference is None:
-            continue
 
         data.append(reference)
 

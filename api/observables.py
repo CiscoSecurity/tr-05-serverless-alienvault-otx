@@ -55,16 +55,23 @@ class Observable(ABC):
     def __repr__(self):
         return f'{self.__class__.__name__}({self.value!r})'
 
+    def observe(self):
+        """Build a bundle with CTIM entities for the current observable."""
+        raise NotImplementedError
+
     def refer(self, url):
+        """Build a reference to the current observable."""
         return {
-            'id': (
-                f'ref-avotx-search-{self.type()}-{quote(self.value, safe="")}'
-            ),
+            'id': f'ref-avotx-search-{self.type()}-{self._quote(self.value)}',
             'title': f'Search for this {self.name()}',
             'description': f'Lookup this {self.name()} on AlienVault OTX',
             'url': f'{url}/indicator/{self.category()}/{self.value}',
             'categories': ['Search', 'AlienVault OTX'],
         }
+
+    @staticmethod
+    def _quote(value):
+        return quote(value, safe='')
 
 
 class Domain(Observable):
