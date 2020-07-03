@@ -63,9 +63,11 @@ def test_health_call_success(route, client, avotx_api_request, valid_jwt):
         ),
     }
 
+    expected_params = {}
+
     avotx_api_request.assert_called_once_with(expected_url,
                                               headers=expected_headers,
-                                              params=None)
+                                              params=expected_params)
 
     expected_payload = {'data': {'status': 'ok'}}
 
@@ -104,9 +106,11 @@ def test_health_call_with_external_error_from_avotx_failure(route,
             ),
         }
 
+        expected_params = {}
+
         avotx_api_request.assert_called_once_with(expected_url,
                                                   headers=expected_headers,
-                                                  params=None)
+                                                  params=expected_params)
 
         avotx_api_request.reset_mock()
 
