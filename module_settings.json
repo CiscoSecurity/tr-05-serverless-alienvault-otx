@@ -4,8 +4,8 @@
     "key": "AlienVault OTX API Key"
   },
   "region": {
-    "us": null,
-    "eu": null,
-    "apjc": null
+    "us": "f3d0a027-3987-4f89-ab98-efd8662ceeb9",
+    "eu": "5e938167-c2e1-4e31-a565-e1fd941db876",
+    "apjc": "9b625d08-aa6e-4f64-a2b6-551c2caae9aa"
   }
 }
