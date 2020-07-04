@@ -8,6 +8,11 @@ from api.client import Client
 
 
 def _concrete_subclasses_of(cls):
+    attr = '_concrete_subclasses'
+
+    if hasattr(cls, attr):
+        return getattr(cls, attr)
+
     subclasses = set()
 
     for subcls in cls.__subclasses__():
@@ -15,6 +20,8 @@ def _concrete_subclasses_of(cls):
             subclasses.add(subcls)
 
         subclasses.update(_concrete_subclasses_of(subcls))
+
+    setattr(cls, attr, subclasses)
 
     return subclasses
 
