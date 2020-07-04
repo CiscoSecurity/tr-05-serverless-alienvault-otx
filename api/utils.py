@@ -3,7 +3,7 @@ from typing import Optional
 
 from authlib.jose import jwt
 from authlib.jose.errors import JoseError
-from flask import request, current_app, jsonify
+from flask import request, current_app, jsonify, g
 
 from api.errors import InvalidPayloadReceivedError, RelayError
 
@@ -37,4 +37,11 @@ def jsonify_data(data):
 
 
 def jsonify_errors(error: RelayError):
-    return jsonify({'errors': [error.json()]})
+    payload = {'errors': [error.json()]}
+
+    if 'bundle' in g:
+        data = g.bundle.json()
+        if data:
+            payload['data'] = data
+
+    return jsonify(payload)

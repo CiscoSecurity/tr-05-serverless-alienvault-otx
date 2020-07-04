@@ -21,8 +21,7 @@ class Bundle:
             for entity_type, entities in self._entities_by_type.items()
         }
 
-    def merge(self, other):
-        assert isinstance(other, Bundle)
+    def merge(self, other: 'Bundle') -> 'Bundle':
         for entity_type, entities in other._entities_by_type.items():
             self._entities_by_type[entity_type].extend(entities)
         return self
