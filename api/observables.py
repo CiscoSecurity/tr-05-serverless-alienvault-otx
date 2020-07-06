@@ -84,7 +84,6 @@ class Observable(ABC):
         for pulse in data['results']:
             # Enrich each AVOTX pulse with some additional context in order to
             # simplify further mapping of it into CTIM entities.
-            pulse['count'] = len(data['results'])
             pulse['indicator'] = next(
                 indicator
                 for indicator in pulse['indicators']

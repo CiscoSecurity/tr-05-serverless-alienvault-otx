@@ -27,6 +27,7 @@ class Sighting(Mapping):
     DEFAULTS = {
         'type': 'sighting',
         'confidence': 'High',
+        'count': 1,
         'internal': False,
         'source': 'AlienVault ATX',
         **CTIM_DEFAULTS
@@ -35,8 +36,6 @@ class Sighting(Mapping):
     @classmethod
     def map(cls, pulse: JSON) -> JSON:
         sighting: JSON = cls.DEFAULTS.copy()
-
-        sighting['count'] = pulse['count']
 
         sighting['id'] = generate_transient_id(sighting)
 
