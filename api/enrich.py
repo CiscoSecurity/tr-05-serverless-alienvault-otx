@@ -34,8 +34,9 @@ def observe_observables():
 
     url = current_app.config['AVOTX_URL']
     headers = {'User-Agent': current_app.config['CTR_USER_AGENT']}
+    params = {'limit': current_app.config['CTR_ENTITIES_LIMIT']}
 
-    client = Client(key, url, headers=headers)
+    client = Client(key, url, headers=headers, params=params)
 
     for observable in observables:
         observable = Observable.instance_for(**observable)

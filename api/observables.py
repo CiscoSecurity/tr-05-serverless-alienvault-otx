@@ -5,6 +5,7 @@ from urllib.parse import quote
 
 from api.bundle import Bundle
 from api.client import Client
+from api.mappings import Sighting, Indicator, Relationship
 
 
 def _concrete_subclasses_of(cls):
@@ -66,25 +67,53 @@ class Observable(ABC):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.value!r})'
 
+    def json(self) -> Dict[str, Any]:
+        return {'type': self.type(), 'value': self.value}
+
     def observe(self, client: Client) -> Bundle:
         """Build a CTIM bundle for the current observable."""
+
         bundle = Bundle()
 
-        # TODO: implement
+        params = {'sort': '-created', 'q': self.value}
+
+        data = client.query('/api/v1/search/pulses', params=params)
+
+        observable = self.json()
+
+        for pulse in data['results']:
+            # Enrich each AVOTX pulse with some additional context in order to
+            # simplify further mapping of it into CTIM entities.
+            pulse['count'] = len(data['results'])
+            pulse['indicator'] = next(
+                indicator
+                for indicator in pulse['indicators']
+                if indicator['indicator'] == self.value
+            )
+            pulse['observable'] = observable
+            pulse['url'] = client.url
+
+            sighting = Sighting.map(pulse)
+            # indicator = Indicator.map(pulse)
+            # relationship = Relationship.map(sighting, indicator)
+
+            bundle.add(sighting)
+            # bundle.add(indicator)
+            # bundle.add(relationship)
 
         return bundle
-
-    @staticmethod
-    def _quote(value):
-        return quote(value, safe='')
 
     def refer(self, url: str) -> Dict[str, Any]:
         """Build an AVOTX reference for the current observable."""
         return {
-            'id': f'ref-avotx-search-{self.type()}-{self._quote(self.value)}',
+            'id': (
+                f"ref-avotx-search-{self.type()}-{quote(self.value, safe='')}"
+            ),
             'title': f'Search for this {self.name()}',
             'description': f'Lookup this {self.name()} on AlienVault OTX',
-            'url': f'{url}/indicator/{self.category()}/{self.value}',
+            'url': (
+                f"{url.rstrip('/')}/indicator/{self.category()}/{self.value}"
+            ),
             'categories': ['Search', 'AlienVault OTX'],
         }
 
@@ -117,6 +146,9 @@ class Email(Observable):
     @staticmethod
     def category() -> str:
         return 'email'
+
+    def observe(self, client: Client) -> Bundle:
+        return Bundle()
 
 
 class FileHash(Observable):
@@ -198,3 +230,6 @@ class URL(Observable):
     @staticmethod
     def category() -> str:
         return 'url'
+
+    def observe(self, client: Client) -> Bundle:
+        return Bundle()
