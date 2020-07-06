@@ -27,6 +27,9 @@ class Client:
             raise AuthenticationRequiredError
 
         if response.status_code != HTTPStatus.OK:
-            raise RelayError
+            response_reason_phrase = HTTPStatus(response.status_code).phrase
+            raise RelayError(
+                f'Reason: {response.status_code} {response_reason_phrase}'
+            )
 
         return response.json()
