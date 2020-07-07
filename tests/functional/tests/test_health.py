@@ -1,5 +1,6 @@
 from ctrlibrary.core.utils import get_observables
 from ctrlibrary.threatresponse.enrich import enrich_post_health
+from tests.functional.tests.constants import MODULE_NAME
 
 
 def test_positive_smoke_enrich_health(module_headers):
@@ -21,8 +22,8 @@ def test_positive_smoke_enrich_health(module_headers):
         **{'headers': module_headers}
     )['data']
     health_from_alien_vault = get_observables(response_from_all_modules,
-                                              'AlienVault OTX')
-    assert health_from_alien_vault['module'] == 'AlienVault OTX'
+                                              MODULE_NAME)
+    assert health_from_alien_vault['module'] == MODULE_NAME
     assert health_from_alien_vault['module_instance_id']
     assert health_from_alien_vault['module_type_id']
     assert health_from_alien_vault['data']['status'] == 'ok'
