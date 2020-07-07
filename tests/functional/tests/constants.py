@@ -1,5 +1,5 @@
 MODULE_NAME = 'AlienVault OTX'
-OBS_HUMAN_READABLE = {
+OBSERVABLE_HUMAN_READABLE_NAME = {
     'ip': 'IP',
     'ipv6': 'IPv6',
     'url': 'URL',
