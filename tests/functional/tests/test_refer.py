@@ -52,5 +52,4 @@ def test_positive_smoke_enrich_refer_observables(module_headers, observable,
         f'Search for this {OBS_HUMAN_READABLE[observable_type]}')
     assert (response_from_alien_vault['description']) == (
         f'Lookup this {OBS_HUMAN_READABLE[observable_type]} on {MODULE_NAME}')
-    assert response_from_alien_vault['categories'][0] == MODULE_NAME
-    assert response_from_alien_vault['categories'][1] == 'Search'
+    assert response_from_alien_vault['categories'] == [MODULE_NAME, 'Search']
