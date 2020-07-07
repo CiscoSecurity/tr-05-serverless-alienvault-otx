@@ -20,19 +20,19 @@ from tests.functional.tests.constants import (
      ('md5', 'f8290f2d593a05ea811edbd3bff6eacc'),
      ('sha1', 'da892cf09cf37a5f3aebed596652d209193c47eb'))
 )
-def test_positive_smoke_enrich_health(module_headers, observable,
-                                      observable_type):
-    """Perform testing for enrich health endpoint to check status of AlienVault
-    OTX module
+def test_positive_smoke_enrich_refer_observables(module_headers, observable,
+                                                 observable_type):
+    """Perform testing for enrich refer observable endpoint to check status of
+    AlienVault OTX module
 
-    ID: CCTRI-1336-6d0d5b40-6d1d-46a5-97f8-ff5f38defd5a
+    ID: CCTRI-1336-1f700099-447c-4803-9df7-d1c97cc5abdb
 
     Steps:
-        1. Send request to enrich health endpoint
+        1. Send request to enrich refer observable endpoint
 
     Expectedresults:
-        1. Check that data in response body contains status Ok from AlienVault
-        OTX module
+        1. Response body contains refer entity with needed fields from
+        AlienVault OTX module
 
     Importance: Critical
     """
