@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from inspect import isabstract
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
 from api.bundle import Bundle
 from api.client import Client
-from api.mappings import Sighting, Indicator, Relationship
+from api.mappings import Sighting
 
 
 def _concrete_subclasses_of(cls):
@@ -67,7 +67,7 @@ class Observable(ABC):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.value!r})'
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> Dict[str, str]:
         return {'type': self.type(), 'value': self.value}
 
     def observe(self, client: Client) -> Bundle:
@@ -83,7 +83,7 @@ class Observable(ABC):
 
         for pulse in data['results']:
             # Enrich each AVOTX pulse with some additional context in order to
-            # simplify further mapping of it into CTIM entities.
+            # simplify further mapping of that pulse into CTIM entities.
             pulse['indicator'] = next(
                 indicator
                 for indicator in pulse['indicators']
@@ -102,7 +102,7 @@ class Observable(ABC):
 
         return bundle
 
-    def refer(self, url: str) -> Dict[str, Any]:
+    def refer(self, url: str) -> Dict[str, Union[str, List[str]]]:
         """Build an AVOTX reference for the current observable."""
         return {
             'id': (
@@ -147,6 +147,7 @@ class Email(Observable):
         return 'email'
 
     def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for email addresses.
         return Bundle()
 
 
@@ -215,6 +216,10 @@ class IPv6(IP):
     def name() -> str:
         return 'IPv6'
 
+    def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for IPv6 addresses.
+        return Bundle()
+
 
 class URL(Observable):
 
@@ -231,4 +236,5 @@ class URL(Observable):
         return 'url'
 
     def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for URLs.
         return Bundle()
