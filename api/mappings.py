@@ -40,8 +40,11 @@ class Sighting(Mapping):
         sighting['id'] = generate_transient_id(sighting)
 
         sighting['observed_time'] = {
-            'start_time': pulse['indicator']['created'] + 'Z',
+            'start_time': pulse['indicator']['created'] + 'Z'
         }
+        sighting['observed_time']['end_time'] = (
+            sighting['observed_time']['start_time']
+        )
 
         sighting['description'] = pulse['description']
 

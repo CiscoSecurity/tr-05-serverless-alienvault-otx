@@ -242,6 +242,8 @@ def expected_payload(any_route, client, valid_json):
 
                 return self.value == other
 
+        start_times = [LazyEqualizer() for _ in range(count)]
+
         sighting_refs = [LazyEqualizer() for _ in range(count)]
 
         payload = {
@@ -254,15 +256,16 @@ def expected_payload(any_route, client, valid_json):
                         'id': sighting_ref,
                         'observables': [observable],
                         'observed_time': {
-                            'start_time': mock.ANY,
+                            'start_time': start_time,
+                            'end_time': start_time,
                         },
                         'source_uri': source_uri,
                         'title': title,
                         'tlp': tlp,
                         **Sighting.DEFAULTS
                     }
-                    for sighting_ref, observable
-                    in zip(sighting_refs, observables)
+                    for sighting_ref, observable, start_time
+                    in zip(sighting_refs, observables, start_times)
                 ],
             },
         }
