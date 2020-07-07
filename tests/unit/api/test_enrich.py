@@ -2,8 +2,10 @@ from http import HTTPStatus
 from unittest import mock
 from urllib.parse import quote
 
+from authlib.jose import jwt
 from pytest import fixture
 
+from api.mappings import Sighting
 from .utils import headers
 
 
@@ -64,7 +66,7 @@ def valid_json():
         },
         {
             'type': 'domain',
-            'value': 'tldrnet.top',
+            'value': 'jsebnawkndwandawd.sh',
         },
         {
             'type': 'email',
@@ -107,8 +109,22 @@ def test_enrich_call_with_valid_json_but_invalid_jwt_failure(avotx_api_route,
                                                              client,
                                                              valid_json,
                                                              invalid_jwt):
-    pass
-    # TODO: implement after /observe/observables
+    response = client.post(avotx_api_route,
+                           json=valid_json,
+                           headers=headers(invalid_jwt))
+
+    expected_payload = {
+        'errors': [
+            {
+                'code': 'authentication required',
+                'message': 'Authentication required.',
+                'type': 'fatal',
+            }
+        ]
+    }
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.get_json() == expected_payload
 
 
 def all_routes():
@@ -130,9 +146,56 @@ def avotx_api_request():
         yield mock_request
 
 
-def avotx_api_response():
-    pass
-    # TODO: implement after /observe/observables
+def avotx_api_response(status_code):
+    mock_response = mock.MagicMock()
+
+    mock_response.status_code = status_code
+
+    if status_code == HTTPStatus.OK:
+        payload = {
+            'results': [
+                {
+                    'TLP': 'white',
+                    'description': (
+                        'This is simply the best pulse '
+                        'in the history of humankind!'
+                    ),
+                    'indicators': [
+                        {
+                            'indicator': 'jsebnawkndwandawd.sh',
+                            'created': '2020-05-14T14:40:28',
+                        },
+                        {
+                            'indicator': 'f8290f2d593a05ea811edbd3bff6eacc',
+                            'created': '2020-07-03T09:15:12',
+                        },
+                        {
+                            'indicator': (
+                                'da892cf09cf37a5f3aebed596652d209193c47eb'
+                            ),
+                            'created': '2020-07-03T08:36:55',
+                        },
+                        {
+                            'indicator': (
+                                'af689a29dab28eedb5b2ee5bf0b94be2'
+                                '112d0881fad815fa082dc3b9d224fce0'
+                            ),
+                            'created': '2020-07-03T11:49:23',
+                        },
+                        {
+                            'indicator': '54.38.157.11',
+                            'created': '2020-07-02T15:25:21',
+                        },
+                    ],
+                    'id': 'q1w2e3r4t5y6',
+                    'name': 'Best Pulse Ever',
+                },
+            ],
+        }
+
+        mock_response.json = lambda: payload
+
+    return mock_response
 
 
 @fixture(scope='module')
@@ -145,7 +208,67 @@ def expected_payload(any_route, client, valid_json):
         payload = {}
 
     if any_route.startswith('/observe'):
-        payload = {}
+        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
+
+        observables = [
+            observable
+            for observable in valid_json
+            if observable['type'] in observable_types
+        ]
+
+        count = len(observables)
+
+        description = (
+            'This is simply the best pulse in the history of humankind!'
+        )
+        external_ids = ['q1w2e3r4t5y6']
+        source_uri = (
+            f"{app.config['AVOTX_URL'].rstrip('/')}/pulse/{external_ids[0]}"
+        )
+        title = 'Best Pulse Ever'
+        tlp = 'white'
+
+        # Implement a dummy class initializing its instances
+        # only after the first comparison with any other object.
+        class LazyEqualizer:
+            NONE = object()
+
+            def __init__(self):
+                self.value = self.NONE
+
+            def __eq__(self, other):
+                if self.value is self.NONE:
+                    self.value = other
+
+                return self.value == other
+
+        start_times = [LazyEqualizer() for _ in range(count)]
+
+        sighting_refs = [LazyEqualizer() for _ in range(count)]
+
+        payload = {
+            'sightings': {
+                'count': count,
+                'docs': [
+                    {
+                        'description': description,
+                        'external_ids': external_ids,
+                        'id': sighting_ref,
+                        'observables': [observable],
+                        'observed_time': {
+                            'start_time': start_time,
+                            'end_time': start_time,
+                        },
+                        'source_uri': source_uri,
+                        'title': title,
+                        'tlp': tlp,
+                        **Sighting.DEFAULTS
+                    }
+                    for sighting_ref, observable, start_time
+                    in zip(sighting_refs, observables, start_times)
+                ],
+            },
+        }
 
     if any_route.startswith('/refer'):
         observable_types = {
@@ -193,9 +316,10 @@ def expected_payload(any_route, client, valid_json):
 def test_enrich_call_success(any_route,
                              client,
                              valid_json,
+                             avotx_api_request,
                              valid_jwt,
                              expected_payload):
-    # app = client.application
+    app = client.application
 
     response = None
 
@@ -203,9 +327,39 @@ def test_enrich_call_success(any_route,
         response = client.post(any_route)
 
     if any_route.startswith('/observe'):
+        avotx_api_request.return_value = avotx_api_response(HTTPStatus.OK)
+
         response = client.post(any_route,
                                json=valid_json,
                                headers=headers(valid_jwt))
+
+        expected_url = f"{app.config['AVOTX_URL']}/api/v1/search/pulses"
+
+        expected_headers = {
+            'User-Agent': app.config['CTR_USER_AGENT'],
+            'X-OTX-API-KEY': (
+                jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
+            ),
+        }
+
+        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
+
+        expected_params_list = [
+            {
+                'limit': app.config['CTR_ENTITIES_LIMIT'],
+                'sort': '-created',
+                'q': observable['value'],
+            }
+            for observable in valid_json
+            if observable['type'] in observable_types
+        ]
+
+        avotx_api_request.assert_has_calls([
+            mock.call(expected_url,
+                      headers=expected_headers,
+                      params=expected_params)
+            for expected_params in expected_params_list
+        ])
 
     if any_route.startswith('/refer'):
         response = client.post(any_route, json=valid_json)
@@ -221,5 +375,64 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
                                                             valid_json,
                                                             avotx_api_request,
                                                             valid_jwt):
-    pass
-    # TODO: implement after /observe/observables
+    for status_code, error_code, error_message in [
+        (
+            HTTPStatus.FORBIDDEN,
+            'authentication required',
+            'Authentication required.',
+        ),
+        (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            'oops',
+            'Something went wrong. Reason: '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.value} '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.phrase}.',
+        ),
+    ]:
+        app = client.application
+
+        avotx_api_request.return_value = avotx_api_response(status_code)
+
+        response = client.post(avotx_api_route,
+                               json=valid_json,
+                               headers=headers(valid_jwt))
+
+        expected_url = f"{app.config['AVOTX_URL']}/api/v1/search/pulses"
+
+        expected_headers = {
+            'User-Agent': app.config['CTR_USER_AGENT'],
+            'X-OTX-API-KEY': (
+                jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
+            ),
+        }
+
+        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
+
+        expected_params = {
+            'limit': app.config['CTR_ENTITIES_LIMIT'],
+            'sort': '-created',
+            'q': next(
+                observable['value']
+                for observable in valid_json
+                if observable['type'] in observable_types
+            ),
+        }
+
+        avotx_api_request.assert_called_once_with(expected_url,
+                                                  headers=expected_headers,
+                                                  params=expected_params)
+
+        avotx_api_request.reset_mock()
+
+        expected_payload = {
+            'errors': [
+                {
+                    'code': error_code,
+                    'message': error_message,
+                    'type': 'fatal',
+                }
+            ]
+        }
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.get_json() == expected_payload

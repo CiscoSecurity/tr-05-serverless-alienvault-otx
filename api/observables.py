@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from inspect import isabstract
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
 from api.bundle import Bundle
 from api.client import Client
+from api.mappings import Sighting
 
 
 def _concrete_subclasses_of(cls):
@@ -66,25 +67,52 @@ class Observable(ABC):
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.value!r})'
 
+    def json(self) -> Dict[str, str]:
+        return {'type': self.type(), 'value': self.value}
+
     def observe(self, client: Client) -> Bundle:
         """Build a CTIM bundle for the current observable."""
+
         bundle = Bundle()
 
-        # TODO: implement
+        params = {'sort': '-created', 'q': self.value}
+
+        data = client.query('/api/v1/search/pulses', params=params)
+
+        observable = self.json()
+
+        for pulse in data['results']:
+            # Enrich each AVOTX pulse with some additional context in order to
+            # simplify further mapping of that pulse into CTIM entities.
+            pulse['indicator'] = next(
+                indicator
+                for indicator in pulse['indicators']
+                if indicator['indicator'] == self.value
+            )
+            pulse['observable'] = observable
+            pulse['url'] = client.url
+
+            sighting = Sighting.map(pulse)
+            # indicator = Indicator.map(pulse)
+            # relationship = Relationship.map(sighting, indicator)
+
+            bundle.add(sighting)
+            # bundle.add(indicator)
+            # bundle.add(relationship)
 
         return bundle
 
-    @staticmethod
-    def _quote(value):
-        return quote(value, safe='')
-
-    def refer(self, url: str) -> Dict[str, Any]:
+    def refer(self, url: str) -> Dict[str, Union[str, List[str]]]:
         """Build an AVOTX reference for the current observable."""
         return {
-            'id': f'ref-avotx-search-{self.type()}-{self._quote(self.value)}',
+            'id': (
+                f"ref-avotx-search-{self.type()}-{quote(self.value, safe='')}"
+            ),
             'title': f'Search for this {self.name()}',
             'description': f'Lookup this {self.name()} on AlienVault OTX',
-            'url': f'{url}/indicator/{self.category()}/{self.value}',
+            'url': (
+                f"{url.rstrip('/')}/indicator/{self.category()}/{self.value}"
+            ),
             'categories': ['Search', 'AlienVault OTX'],
         }
 
@@ -117,6 +145,10 @@ class Email(Observable):
     @staticmethod
     def category() -> str:
         return 'email'
+
+    def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for email addresses.
+        return Bundle()
 
 
 class FileHash(Observable):
@@ -184,6 +216,10 @@ class IPv6(IP):
     def name() -> str:
         return 'IPv6'
 
+    def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for IPv6 addresses.
+        return Bundle()
+
 
 class URL(Observable):
 
@@ -198,3 +234,7 @@ class URL(Observable):
     @staticmethod
     def category() -> str:
         return 'url'
+
+    def observe(self, client: Client) -> Bundle:
+        # The AVOTX API does not support searching for URLs.
+        return Bundle()

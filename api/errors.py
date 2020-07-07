@@ -5,7 +5,7 @@ class RelayError(Exception):
     MESSAGE = 'Something went wrong.'
     TYPE = 'fatal'
 
-    def __init__(self, detail=''):
+    def __init__(self, detail=None):
         message = self.MESSAGE
         if detail:
             message += f' {detail}.'

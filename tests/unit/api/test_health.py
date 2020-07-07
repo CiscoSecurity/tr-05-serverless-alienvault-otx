@@ -88,7 +88,9 @@ def test_health_call_with_external_error_from_avotx_failure(route,
         (
             HTTPStatus.INTERNAL_SERVER_ERROR,
             'oops',
-            'Something went wrong.',
+            'Something went wrong. Reason: '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.value} '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.phrase}.',
         ),
     ]:
         app = client.application
