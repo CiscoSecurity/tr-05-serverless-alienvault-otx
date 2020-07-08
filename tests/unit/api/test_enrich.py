@@ -5,7 +5,7 @@ from urllib.parse import quote
 from authlib.jose import jwt
 from pytest import fixture
 
-from api.mappings import Sighting, Indicator
+from api.mappings import Sighting, Indicator, Relationship
 from .utils import headers
 
 
@@ -313,6 +313,19 @@ def expected_payload(any_route, client, valid_json):
                     }
                     for indicator_ref, observable, valid_time
                     in zip(indicator_refs, observables, valid_times)
+                ],
+            },
+            'relationships': {
+                'count': count,
+                'docs': [
+                    {
+                        'id': mock.ANY,
+                        'source_ref': sighting_ref,
+                        'target_ref': indicator_ref,
+                        **Relationship.DEFAULTS
+                    }
+                    for sighting_ref, indicator_ref
+                    in zip(sighting_refs, indicator_refs)
                 ],
             },
         }
