@@ -5,7 +5,7 @@ from urllib.parse import quote
 
 from api.bundle import Bundle
 from api.client import Client
-from api.mappings import Sighting, Indicator
+from api.mappings import Sighting, Indicator, Relationship
 
 
 def _concrete_subclasses_of(cls):
@@ -94,11 +94,11 @@ class Observable(ABC):
 
             sighting = Sighting.map(pulse)
             indicator = Indicator.map(pulse)
-            # relationship = Relationship.map(sighting, indicator)
+            relationship = Relationship.map(sighting, indicator)
 
             bundle.add(sighting)
             bundle.add(indicator)
-            # bundle.add(relationship)
+            bundle.add(relationship)
 
         return bundle
 
