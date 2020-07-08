@@ -66,6 +66,7 @@ class Sighting(Mapping):
 class Indicator(Mapping):
     DEFAULTS = {
         'type': 'indicator',
+        'confidence': 'High',
         'source': 'AlienVault OTX',
         **CTIM_DEFAULTS
     }
@@ -76,7 +77,29 @@ class Indicator(Mapping):
 
         indicator['id'] = generate_transient_id(indicator)
 
-        # TODO: implement
+        indicator['producer'] = pulse['author']['username']
+
+        indicator['valid_time'] = {
+            'start_time': pulse['indicator']['created'] + 'Z'
+        }
+        if pulse['indicator']['expiration']:
+            indicator['valid_time']['end_time'] = (
+                pulse['indicator']['expiration'] + 'Z'
+            )
+
+        indicator['external_ids'] = [pulse['id']]
+
+        indicator['short_description'] = pulse['description']
+
+        indicator['source_uri'] = (
+            f"{pulse['url'].rstrip('/')}/pulse/{pulse['id']}"
+        )
+
+        indicator['tags'] = pulse['tags']
+
+        indicator['title'] = pulse['name']
+
+        indicator['tlp'] = pulse['TLP']
 
         return indicator
 

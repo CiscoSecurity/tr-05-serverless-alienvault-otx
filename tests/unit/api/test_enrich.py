@@ -5,7 +5,7 @@ from urllib.parse import quote
 from authlib.jose import jwt
 from pytest import fixture
 
-from api.mappings import Sighting
+from api.mappings import Sighting, Indicator
 from .utils import headers
 
 
@@ -156,6 +156,9 @@ def avotx_api_response(status_code):
             'results': [
                 {
                     'TLP': 'white',
+                    'author': {
+                        'username': 'JoriQ',
+                    },
                     'description': (
                         'This is simply the best pulse '
                         'in the history of humankind!'
@@ -163,32 +166,38 @@ def avotx_api_response(status_code):
                     'indicators': [
                         {
                             'indicator': 'jsebnawkndwandawd.sh',
-                            'created': '2020-05-14T14:40:28',
+                            'created': '1970-01-01T00:00:00',
+                            'expiration': None,
                         },
                         {
                             'indicator': 'f8290f2d593a05ea811edbd3bff6eacc',
-                            'created': '2020-07-03T09:15:12',
+                            'created': '1970-01-02T00:00:00',
+                            'expiration': None,
                         },
                         {
                             'indicator': (
                                 'da892cf09cf37a5f3aebed596652d209193c47eb'
                             ),
-                            'created': '2020-07-03T08:36:55',
+                            'created': '1970-01-03T00:00:00',
+                            'expiration': None,
                         },
                         {
                             'indicator': (
                                 'af689a29dab28eedb5b2ee5bf0b94be2'
                                 '112d0881fad815fa082dc3b9d224fce0'
                             ),
-                            'created': '2020-07-03T11:49:23',
+                            'created': '1970-01-04T00:00:00',
+                            'expiration': None,
                         },
                         {
                             'indicator': '54.38.157.11',
-                            'created': '2020-07-02T15:25:21',
+                            'created': '1970-01-05T00:00:00',
+                            'expiration': '1970-01-06T00:00:00',
                         },
                     ],
                     'id': 'q1w2e3r4t5y6',
                     'name': 'Best Pulse Ever',
+                    'tags': ['open', 'threat', 'exchange'],
                 },
             ],
         }
@@ -218,13 +227,36 @@ def expected_payload(any_route, client, valid_json):
 
         count = len(observables)
 
+        start_times = [
+            f'1970-01-0{day}T00:00:00Z'
+            for day in range(1, count + 1)
+        ]
+
+        observed_times = [
+            {'start_time': start_time}
+            for start_time in start_times
+        ]
+
+        for observed_time in observed_times:
+            observed_time['end_time'] = observed_time['start_time']
+
+        valid_times = [
+            {'start_time': start_time}
+            for start_time in start_times
+        ]
+
+        valid_times[-1]['end_time'] = f'1970-01-0{count + 1}T00:00:00Z'
+
         description = (
             'This is simply the best pulse in the history of humankind!'
         )
         external_ids = ['q1w2e3r4t5y6']
+        producer = 'JoriQ'
+        short_description = description
         source_uri = (
             f"{app.config['AVOTX_URL'].rstrip('/')}/pulse/{external_ids[0]}"
         )
+        tags = ['open', 'threat', 'exchange']
         title = 'Best Pulse Ever'
         tlp = 'white'
 
@@ -242,9 +274,8 @@ def expected_payload(any_route, client, valid_json):
 
                 return self.value == other
 
-        start_times = [LazyEqualizer() for _ in range(count)]
-
         sighting_refs = [LazyEqualizer() for _ in range(count)]
+        indicator_refs = [LazyEqualizer() for _ in range(count)]
 
         payload = {
             'sightings': {
@@ -255,17 +286,33 @@ def expected_payload(any_route, client, valid_json):
                         'external_ids': external_ids,
                         'id': sighting_ref,
                         'observables': [observable],
-                        'observed_time': {
-                            'start_time': start_time,
-                            'end_time': start_time,
-                        },
+                        'observed_time': observed_time,
                         'source_uri': source_uri,
                         'title': title,
                         'tlp': tlp,
                         **Sighting.DEFAULTS
                     }
-                    for sighting_ref, observable, start_time
-                    in zip(sighting_refs, observables, start_times)
+                    for sighting_ref, observable, observed_time
+                    in zip(sighting_refs, observables, observed_times)
+                ],
+            },
+            'indicators': {
+                'count': count,
+                'docs': [
+                    {
+                        'id': indicator_ref,
+                        'external_ids': external_ids,
+                        'producer': producer,
+                        'short_description': short_description,
+                        'source_uri': source_uri,
+                        'tags': tags,
+                        'title': title,
+                        'tlp': tlp,
+                        'valid_time': valid_time,
+                        **Indicator.DEFAULTS
+                    }
+                    for indicator_ref, observable, valid_time
+                    in zip(indicator_refs, observables, valid_times)
                 ],
             },
         }
