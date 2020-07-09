@@ -111,7 +111,8 @@ class Observable(ABC):
             'title': f'Search for this {self.name()}',
             'description': f'Lookup this {self.name()} on AlienVault OTX',
             'url': (
-                f"{url.rstrip('/')}/indicator/{self.category()}/{self.value}"
+                f"{url.rstrip('/')}/indicator/{self.category()}/"
+                f"{quote(self.value, safe='@:')}"
             ),
             'categories': ['Search', 'AlienVault OTX'],
         }
