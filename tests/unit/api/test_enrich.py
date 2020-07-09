@@ -70,7 +70,7 @@ def valid_json():
         },
         {
             'type': 'email',
-            'value': 'ysadmin@meraki.com',
+            'value': 'msalem@webalo.com',
         },
         {
             'type': 'md5',
@@ -361,7 +361,8 @@ def expected_payload(any_route, client, valid_json):
                 ),
                 'url': (
                     f"{app.config['AVOTX_URL']}/indicator/"
-                    f"{observable['category']}/{observable['value']}"
+                    f"{observable['category']}/"
+                    f"{quote(observable['value'], safe='@:')}"
                 ),
                 'categories': ['Search', 'AlienVault OTX'],
             }

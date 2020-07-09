@@ -13,7 +13,7 @@ from tests.functional.tests.constants import (
     (('ip', '54.38.157.11'),
      ('ipv6', '2620:12f:c000:0:92e2:baff:fecd:3f94'),
      ('url', 'http://blockchains.pk/nw_NIHbAj35.bin'),
-     ('email', 'ysadmin@meraki.com'),
+     ('email', 'msalem@webalo.com'),
      ('domain', 'jsebnawkndwandawd.sh'),
      ('sha256',
       'af689a29dab28eedb5b2ee5bf0b94be2112d0881fad815fa082dc3b9d224fce0'),
