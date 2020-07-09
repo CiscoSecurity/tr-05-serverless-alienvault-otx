@@ -29,7 +29,7 @@ class Sighting(Mapping):
         'confidence': 'High',
         'count': 1,
         'internal': False,
-        'source': 'AlienVault ATX',
+        'source': 'AlienVault OTX',
         **CTIM_DEFAULTS
     }
 

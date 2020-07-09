@@ -9,3 +9,5 @@ OBSERVABLE_HUMAN_READABLE_NAME = {
     'email': 'email',
     'domain': 'domain'
 }
+ALIEN_VAULT_URL = 'https://otx.alienvault.com'
+CONFIDENCE_LEVEL = 'High'
