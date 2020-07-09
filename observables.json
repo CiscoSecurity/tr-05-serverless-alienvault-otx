@@ -1,0 +1,34 @@
+[
+    {
+        "type": "domain",
+        "value": "jsebnawkndwandawd.sh"
+    },
+    {
+        "type": "email",
+        "value": "ysadmin@meraki.com"
+    },
+    {
+        "type": "md5",
+        "value": "f8290f2d593a05ea811edbd3bff6eacc"
+    },
+    {
+        "type": "sha1",
+        "value": "da892cf09cf37a5f3aebed596652d209193c47eb"
+    },
+    {
+        "type": "sha256",
+        "value": "af689a29dab28eedb5b2ee5bf0b94be2112d0881fad815fa082dc3b9d224fce0"
+    },
+    {
+        "type": "ip",
+        "value": "54.38.157.11"
+    },
+    {
+        "type": "ipv6",
+        "value": "2620:12f:c000:0:92e2:baff:fecd:3f94"
+    },
+    {
+        "type": "url",
+        "value": "http://blockchains.pk/nw_NIHbAj35.bin"
+    }
+]
