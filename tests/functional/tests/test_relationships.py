@@ -67,7 +67,7 @@ def test_positive_smoke_enrich_relationships(module_headers, observable,
     for relationship in relationships['docs']:
         assert relationship['schema_version']
         assert relationship['type'] == 'relationship'
-        assert relationship['id'].startswith('transient:relationships')
+        assert relationship['id'].startswith('transient:relationship')
         assert relationship['relationship_type'] == 'member-of'
 
     assert relationships['count'] == len(relationships['docs'])
