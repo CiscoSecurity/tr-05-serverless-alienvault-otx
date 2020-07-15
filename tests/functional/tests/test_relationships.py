@@ -43,21 +43,20 @@ def test_positive_smoke_enrich_relationships(module_headers, observable,
     relationships = response_from_alien_vault['data']['relationships']
 
     indicators_ids = {
-        indicator['id'] for indicator in response_from_alien_vault[
-            'data']['indicators']['docs']
+        indicator['id'] for indicator
+        in response_from_alien_vault['data']['indicators']['docs']
     }
     sightings_ids = {
-        sighting['id'] for sighting in response_from_alien_vault[
-            'data']['sightings']['docs']
+        sighting['id'] for sighting
+        in response_from_alien_vault['data']['sightings']['docs']
     }
     target_ref = {
-        relationship['target_ref'] for relationship in response_from_alien_vault[
-            'data']['relationships']['docs']
+        relationship['target_ref'] for relationship
+        in response_from_alien_vault['data']['relationships']['docs']
     }
     source_ref = {
-        relationship[
-            'source_ref'] for relationship in response_from_alien_vault[
-            'data']['relationships']['docs']
+        relationship['source_ref'] for relationship
+        in response_from_alien_vault['data']['relationships']['docs']
     }
 
     assert target_ref == indicators_ids
