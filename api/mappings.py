@@ -19,7 +19,7 @@ CTIM_DEFAULTS = {
 }
 
 
-def generate_transient_id(entity):
+def transient_id(entity):
     return f"transient:{entity['type']}-{uuid4()}"
 
 
@@ -37,7 +37,7 @@ class Sighting(Mapping):
     def map(cls, pulse: JSON) -> JSON:
         sighting: JSON = cls.DEFAULTS.copy()
 
-        sighting['id'] = generate_transient_id(sighting)
+        sighting['id'] = transient_id(sighting)
 
         sighting['observed_time'] = {
             'start_time': pulse['indicator']['created'] + 'Z'
@@ -75,7 +75,7 @@ class Indicator(Mapping):
     def map(cls, pulse: JSON) -> JSON:
         indicator: JSON = cls.DEFAULTS.copy()
 
-        indicator['id'] = generate_transient_id(indicator)
+        indicator['id'] = transient_id(indicator)
 
         indicator['producer'] = pulse['author']['username']
 
@@ -115,7 +115,7 @@ class Relationship(Mapping):
     def map(cls, sighting: JSON, indicator: JSON) -> JSON:
         relationship: JSON = cls.DEFAULTS.copy()
 
-        relationship['id'] = generate_transient_id(relationship)
+        relationship['id'] = transient_id(relationship)
 
         relationship['source_ref'] = sighting['id']
 

@@ -34,16 +34,16 @@ def observe_observables():
 
     url = current_app.config['AVOTX_URL']
     headers = {'User-Agent': current_app.config['CTR_USER_AGENT']}
-    params = {'limit': current_app.config['CTR_ENTITIES_LIMIT']}
 
-    client = Client(key, url, headers=headers, params=params)
+    client = Client(key, url, headers=headers)
+    limit = current_app.config['CTR_ENTITIES_LIMIT']
 
     for observable in observables:
         observable = Observable.instance_for(**observable)
         if observable is None:
             continue
 
-        bundle = observable.observe(client)
+        bundle = observable.observe(client, limit=limit)
         g.bundle |= bundle
 
     data = g.bundle.json()

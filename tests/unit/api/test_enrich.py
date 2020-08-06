@@ -74,25 +74,25 @@ def valid_json():
         },
         {
             'type': 'md5',
-            'value': 'f8290f2d593a05ea811edbd3bff6eacc',
+            'value': 'd8414d743778cae103c15461200ec64d',
         },
         {
             'type': 'sha1',
-            'value': 'da892cf09cf37a5f3aebed596652d209193c47eb',
+            'value': '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45',
         },
         {
             'type': 'sha256',
             'value': (
-                'af689a29dab28eedb5b2ee5bf0b94be2112d0881fad815fa082dc3b9d224fce0'  # noqa: E501
+                'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d'  # noqa: E501
             ),
         },
         {
             'type': 'ip',
-            'value': '54.38.157.11',
+            'value': '99.85.80.169',
         },
         {
             'type': 'ipv6',
-            'value': '2620:12f:c000:0:92e2:baff:fecd:3f94',
+            'value': '2001:14ba:1f00:0:1117:e76e:843d:f803',
         },
         {
             'type': 'url',
@@ -170,13 +170,13 @@ def avotx_api_response(status_code):
                             'expiration': None,
                         },
                         {
-                            'indicator': 'f8290f2d593a05ea811edbd3bff6eacc',
+                            'indicator': 'd8414d743778cae103c15461200ec64d',
                             'created': '1970-01-02T00:00:00',
                             'expiration': None,
                         },
                         {
                             'indicator': (
-                                'da892cf09cf37a5f3aebed596652d209193c47eb'
+                                '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45'
                             ),
                             'created': '1970-01-03T00:00:00',
                             'expiration': None,
@@ -190,7 +190,7 @@ def avotx_api_response(status_code):
                             'expiration': None,
                         },
                         {
-                            'indicator': '54.38.157.11',
+                            'indicator': '99.85.80.169',
                             'created': '1970-01-05T00:00:00',
                             'expiration': '1970-01-06T00:00:00',
                         },

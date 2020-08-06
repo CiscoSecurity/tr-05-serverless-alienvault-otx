@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor
 from inspect import isabstract
+from operator import itemgetter
 from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
 from api.bundle import Bundle
 from api.client import Client
+from api.errors import RelayError
 from api.mappings import Sighting, Indicator, Relationship
 
 
@@ -56,7 +59,7 @@ class Observable(ABC):
     @staticmethod
     @abstractmethod
     def category() -> str:
-        """The AVOTX category for the class of observables."""
+        """The AVOTX indicator category for the class of observables."""
 
     def __init__(self, value: str) -> None:
         self.value = value
@@ -70,25 +73,92 @@ class Observable(ABC):
     def json(self) -> Dict[str, str]:
         return {'type': self.type(), 'value': self.value}
 
-    def observe(self, client: Client) -> Bundle:
+    def observe(self, client: Client, limit: Optional[int] = None) -> Bundle:
         """Build a CTIM bundle for the current observable."""
 
         bundle = Bundle()
 
-        params = {'sort': '-created', 'q': self.value}
+        category = {
+            'ip': 'IPv4',
+            'ipv6': 'IPv6',
+        }.get(
+            self.type(),
+            self.category(),
+        )
 
-        data = client.query('/api/v1/search/pulses', params=params)
+        endpoint = (
+            f'/api/v1/indicators/{category}/'
+            f"{quote(self.value, safe='@:')}/general"
+        )
+
+        data = client.query(endpoint)
+        if data is None:
+            return bundle
+
+        # Make sure to filter out redundant pulses that do not match anyway.
+        pulses = [
+            pulse
+            for pulse in data['pulse_info']['pulses']
+            if data['base_indicator']['type'] in pulse['indicator_type_counts']
+        ]
+        if not pulses:
+            return bundle
+
+        def indicator_for(pulse, page=1):
+            # This limit provides a decent tradeoff between the number of
+            # requests to be made and the size of each response coming back.
+            limit = 10000
+
+            endpoint = f"/api/v1/pulses/{pulse['id']}/indicators"
+            params = {'sort': '-created', 'limit': limit, 'page': page}
+
+            data = client.query(endpoint, params=params)
+
+            for indicator in data['results']:
+                if indicator['indicator'] == self.value:
+                    return indicator
+
+            if data['next'] is None:
+                return None
+
+            return indicator_for(pulse, page=(page + 1))
+
+        with ThreadPoolExecutor(max_workers=len(pulses)) as executor:
+            iterator = executor.map(indicator_for, pulses)
+
+        indicators = []
+
+        while True:
+            try:
+                indicator = next(iterator)
+            except RelayError:
+                continue
+            except StopIteration:
+                break
+            else:
+                if indicator is None:
+                    continue
+                indicators.append(indicator)
+
+        indicators.sort(key=itemgetter('created'), reverse=True)
+
+        if limit is None:
+            limit = len(indicators)
+
+        indicators = indicators[:limit]
 
         observable = self.json()
 
-        for pulse in data['results']:
+        for indicator in indicators:
+            pulse = next(
+                pulse
+                for pulse in pulses
+                if pulse['id'] == indicator['pulse_key']
+            )
+
             # Enrich each AVOTX pulse with some additional context in order to
             # simplify further mapping of that pulse into CTIM entities.
-            pulse['indicator'] = next(
-                indicator
-                for indicator in pulse['indicators']
-                if indicator['indicator'] == self.value
-            )
+            pulse['indicator'] = indicator
             pulse['observable'] = observable
             pulse['url'] = client.url
 
@@ -147,8 +217,9 @@ class Email(Observable):
     def category() -> str:
         return 'email'
 
-    def observe(self, client: Client) -> Bundle:
-        # The AVOTX API does not support searching for email addresses.
+    def observe(self, client: Client, limit: Optional[int] = None) -> Bundle:
+        # The AVOTX API does not support searching for email addresses as the
+        # "/api/v1/indicators/email/{email}/general" endpoint does not exist.
         return Bundle()
 
 
@@ -217,10 +288,6 @@ class IPv6(IP):
     def name() -> str:
         return 'IPv6'
 
-    def observe(self, client: Client) -> Bundle:
-        # The AVOTX API does not support searching for IPv6 addresses.
-        return Bundle()
-
 
 class URL(Observable):
 
@@ -235,7 +302,3 @@ class URL(Observable):
     @staticmethod
     def category() -> str:
         return 'url'
-
-    def observe(self, client: Client) -> Bundle:
-        # The AVOTX API does not support searching for URLs.
-        return Bundle()
