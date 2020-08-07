@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from random import sample
 from unittest import mock
 from urllib.parse import quote
 
@@ -82,9 +83,7 @@ def valid_json():
         },
         {
             'type': 'sha256',
-            'value': (
-                'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d'  # noqa: E501
-            ),
+            'value': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',  # noqa: E501
         },
         {
             'type': 'ip',
@@ -152,57 +151,90 @@ def avotx_api_response(status_code):
     mock_response.status_code = status_code
 
     if status_code == HTTPStatus.OK:
-        payload = {
-            'results': [
-                {
-                    'TLP': 'white',
-                    'author': {
-                        'username': 'JoriQ',
-                    },
-                    'description': (
-                        'This is simply the best pulse '
-                        'in the history of humankind!'
-                    ),
-                    'indicators': [
-                        {
-                            'indicator': 'jsebnawkndwandawd.sh',
-                            'created': '1970-01-01T00:00:00',
-                            'expiration': None,
-                        },
-                        {
-                            'indicator': 'd8414d743778cae103c15461200ec64d',
-                            'created': '1970-01-02T00:00:00',
-                            'expiration': None,
-                        },
-                        {
-                            'indicator': (
-                                '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45'
-                            ),
-                            'created': '1970-01-03T00:00:00',
-                            'expiration': None,
-                        },
-                        {
-                            'indicator': (
-                                'af689a29dab28eedb5b2ee5bf0b94be2'
-                                '112d0881fad815fa082dc3b9d224fce0'
-                            ),
-                            'created': '1970-01-04T00:00:00',
-                            'expiration': None,
-                        },
-                        {
-                            'indicator': '99.85.80.169',
-                            'created': '1970-01-05T00:00:00',
-                            'expiration': '1970-01-06T00:00:00',
-                        },
-                    ],
-                    'id': 'q1w2e3r4t5y6',
-                    'name': 'Best Pulse Ever',
-                    'tags': ['open', 'threat', 'exchange'],
-                },
-            ],
+        indicator_types = [
+            'domain',
+            'FileHash-MD5',
+            'FileHash-SHA1',
+            'FileHash-SHA256',
+            'IPv4',
+            'IPv6',
+            'URL',
+        ]
+        pulse = {
+            'author': {
+                'username': 'JoriQ',
+            },
+            'description': (
+                'This is simply the best pulse in the history of humankind!'
+            ),
+            'id': 'q1w2e3r4t5y6',
+            'indicator_type_counts': {
+                indicator_type: 1
+                for indicator_type in indicator_types
+            },
+            'name': 'Best Pulse Ever',
+            'tags': ['open', 'threat', 'exchange'],
+            'TLP': 'white',
         }
+        indicators = [
+            {
+                'indicator': 'jsebnawkndwandawd.sh',
+                'created': '1970-01-01T00:00:00',
+                'expiration': None,
+            },
+            {
+                'indicator': 'd8414d743778cae103c15461200ec64d',
+                'created': '1970-01-02T00:00:00',
+                'expiration': None,
+            },
+            {
+                'indicator': '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45',
+                'created': '1970-01-03T00:00:00',
+                'expiration': None,
+            },
+            {
+                'indicator': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',  # noqa: E501
+                'created': '1970-01-04T00:00:00',
+                'expiration': None,
+            },
+            {
+                'indicator': '99.85.80.169',
+                'created': '1970-01-05T00:00:00',
+                'expiration': '1970-01-06T00:00:00',
+            },
+            {
+                'indicator': '2001:14ba:1f00:0:1117:e76e:843d:f803',
+                'created': '1970-01-06T00:00:00',
+                'expiration': '1970-01-07T00:00:00',
+            },
+            {
+                'indicator': 'http://blockchains.pk/nw_NIHbAj35.bin',
+                'created': '1970-01-07T00:00:00',
+                'expiration': None,
+            },
+        ]
+        for indicator in indicators:
+            indicator['pulse_key'] = pulse['id']
 
-        mock_response.json = lambda: payload
+        payload_list = []
+
+        for indicator_type in indicator_types:
+            payload_list.append({
+                'base_indicator': {
+                    'type': indicator_type,
+                },
+                'pulse_info': {
+                    'pulses': [pulse],
+                },
+            })
+            payload_list.append({
+                'next': None,
+                'results': indicators,
+            })
+
+        payload_list_iter = iter(payload_list)
+
+        mock_response.json = lambda: next(payload_list_iter)
 
     return mock_response
 
@@ -217,7 +249,15 @@ def expected_payload(any_route, client, valid_json):
         payload = {}
 
     if any_route.startswith('/observe'):
-        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
+        observable_types = {
+            'domain',
+            'md5',
+            'sha1',
+            'sha256',
+            'ip',
+            'ipv6',
+            'url',
+        }
 
         observables = [
             observable
@@ -245,7 +285,12 @@ def expected_payload(any_route, client, valid_json):
             for start_time in start_times
         ]
 
-        valid_times[-1]['end_time'] = f'1970-01-0{count + 1}T00:00:00Z'
+        for index in range(count):
+            if observables[index]['type'] in ('ip', 'ipv6'):
+                day = index + 1
+                valid_times[index]['end_time'] = (
+                    f'1970-01-0{day + 1}T00:00:00Z'
+                )
 
         description = (
             'This is simply the best pulse in the history of humankind!'
@@ -388,39 +433,68 @@ def test_enrich_call_success(any_route,
         response = client.post(any_route)
 
     if any_route.startswith('/observe'):
-        avotx_api_request.return_value = avotx_api_response(HTTPStatus.OK)
+        target = 'api.observables.ThreadPoolExecutor.map'
+        side_effect = map
 
-        response = client.post(any_route,
-                               json=valid_json,
-                               headers=headers(valid_jwt))
+        with mock.patch(target, side_effect=side_effect):
+            avotx_api_request.return_value = avotx_api_response(HTTPStatus.OK)
 
-        expected_url = f"{app.config['AVOTX_URL']}/api/v1/search/pulses"
+            response = client.post(any_route,
+                                   json=valid_json,
+                                   headers=headers(valid_jwt))
 
-        expected_headers = {
-            'User-Agent': app.config['CTR_USER_AGENT'],
-            'X-OTX-API-KEY': (
-                jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
-            ),
-        }
-
-        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
-
-        expected_params_list = [
-            {
-                'limit': app.config['CTR_ENTITIES_LIMIT'],
-                'sort': '-created',
-                'q': observable['value'],
+            observable_types = {
+                'domain': 'domain',
+                'md5': 'file',
+                'sha1': 'file',
+                'sha256': 'file',
+                'ip': 'IPv4',
+                'ipv6': 'IPv6',
+                'url': 'url',
             }
-            for observable in valid_json
-            if observable['type'] in observable_types
-        ]
 
-        avotx_api_request.assert_has_calls([
-            mock.call(expected_url,
-                      headers=expected_headers,
-                      params=expected_params)
-            for expected_params in expected_params_list
-        ])
+            expected_urls = []
+
+            expected_headers = {
+                'User-Agent': app.config['CTR_USER_AGENT'],
+                'X-OTX-API-KEY': (
+                    jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
+                ),
+            }
+
+            expected_params_list = []
+
+            pulse_id = 'q1w2e3r4t5y6'
+
+            for observable in valid_json:
+                if observable['type'] not in observable_types:
+                    continue
+
+                category = observable_types[observable['type']]
+
+                expected_urls.append(
+                    f"{app.config['AVOTX_URL']}/api/v1/indicators/{category}/"
+                    f"{quote(observable['value'], safe='@:')}/general"
+                )
+                expected_params_list.append({})
+
+                expected_urls.append(
+                    f"{app.config['AVOTX_URL']}/api/v1/pulses/{pulse_id}/"
+                    'indicators'
+                )
+                expected_params_list.append({
+                    'sort': '-created',
+                    'limit': mock.ANY,
+                    'page': 1,
+                })
+
+            avotx_api_request.assert_has_calls([
+                mock.call(expected_url,
+                          headers=expected_headers,
+                          params=expected_params)
+                for expected_url, expected_params
+                in zip(expected_urls, expected_params_list)
+            ])
 
     if any_route.startswith('/refer'):
         response = client.post(any_route, json=valid_json)
@@ -454,11 +528,37 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
 
         avotx_api_request.return_value = avotx_api_response(status_code)
 
+        def shuffle(sequence):
+            return sample(sequence, len(sequence))
+
+        observables = shuffle(valid_json)
+
         response = client.post(avotx_api_route,
-                               json=valid_json,
+                               json=observables,
                                headers=headers(valid_jwt))
 
-        expected_url = f"{app.config['AVOTX_URL']}/api/v1/search/pulses"
+        observable_types = {
+            'domain': 'domain',
+            'md5': 'file',
+            'sha1': 'file',
+            'sha256': 'file',
+            'ip': 'IPv4',
+            'ipv6': 'IPv6',
+            'url': 'url',
+        }
+
+        observable = next(
+            observable
+            for observable in observables
+            if observable['type'] in observable_types
+        )
+
+        category = observable_types[observable['type']]
+
+        expected_url = (
+            f"{app.config['AVOTX_URL']}/api/v1/indicators/{category}/"
+            f"{quote(observable['value'], safe='@:')}/general"
+        )
 
         expected_headers = {
             'User-Agent': app.config['CTR_USER_AGENT'],
@@ -467,17 +567,7 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
             ),
         }
 
-        observable_types = {'domain', 'md5', 'sha1', 'sha256', 'ip'}
-
-        expected_params = {
-            'limit': app.config['CTR_ENTITIES_LIMIT'],
-            'sort': '-created',
-            'q': next(
-                observable['value']
-                for observable in valid_json
-                if observable['type'] in observable_types
-            ),
-        }
+        expected_params = {}
 
         avotx_api_request.assert_called_once_with(expected_url,
                                                   headers=expected_headers,

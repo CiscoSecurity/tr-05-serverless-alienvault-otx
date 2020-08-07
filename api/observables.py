@@ -78,6 +78,9 @@ class Observable(ABC):
 
         bundle = Bundle()
 
+        # Implement a workaround instead of using the "/api/v1/search/pulses"
+        # endpoint as it works too slow and is not really optimizable...
+
         category = {
             'ip': 'IPv4',
             'ipv6': 'IPv6',
