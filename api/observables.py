@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from inspect import isabstract
 from operator import itemgetter
+from os import cpu_count
 from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
@@ -126,7 +127,9 @@ class Observable(ABC):
 
             return indicator_for(pulse, page=(page + 1))
 
-        with ThreadPoolExecutor(max_workers=len(pulses)) as executor:
+        with ThreadPoolExecutor(
+            max_workers=max(len(pulses), (cpu_count() or 1) * 5)
+        ) as executor:
             iterator = executor.map(indicator_for, pulses)
 
         indicators = []
