@@ -16,15 +16,21 @@ class Client:
 
         self.headers['X-OTX-API-KEY'] = self.key
 
-    def query(self, route, headers=None, params=None):
+    def query(self, endpoint, headers=None, params=None):
         response = requests.get(
-            f"{self.url.rstrip('/')}/{route.lstrip('/')}",
+            f"{self.url.rstrip('/')}/{endpoint.lstrip('/')}",
             headers={**self.headers, **(headers or {})},
             params={**self.params, **(params or {})},
         )
 
+        if response.status_code == HTTPStatus.BAD_REQUEST:
+            return None
+
         if response.status_code == HTTPStatus.FORBIDDEN:
             raise AuthenticationRequiredError
+
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            return None
 
         if response.status_code != HTTPStatus.OK:
             response_reason_phrase = HTTPStatus(response.status_code).phrase

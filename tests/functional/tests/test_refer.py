@@ -10,15 +10,15 @@ from tests.functional.tests.constants import (
 
 @pytest.mark.parametrize(
     'observable_type, observable',
-    (('ip', '54.38.157.11'),
-     ('ipv6', '2620:12f:c000:0:92e2:baff:fecd:3f94'),
+    (('ip', '99.85.80.169'),
+     ('ipv6', '2001:14ba:1f00:0:1117:e76e:843d:f803'),
      ('url', 'http://blockchains.pk/nw_NIHbAj35.bin'),
      ('email', 'msalem@webalo.com'),
      ('domain', 'jsebnawkndwandawd.sh'),
      ('sha256',
-      'af689a29dab28eedb5b2ee5bf0b94be2112d0881fad815fa082dc3b9d224fce0'),
-     ('md5', 'f8290f2d593a05ea811edbd3bff6eacc'),
-     ('sha1', 'da892cf09cf37a5f3aebed596652d209193c47eb'))
+      'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d'),
+     ('md5', 'd8414d743778cae103c15461200ec64d'),
+     ('sha1', '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45'))
 )
 def test_positive_smoke_enrich_refer_observables(module_headers, observable,
                                                  observable_type):
