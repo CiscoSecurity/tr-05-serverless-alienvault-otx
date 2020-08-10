@@ -128,7 +128,7 @@ class Observable(ABC):
             return indicator_for(pulse, page=(page + 1))
 
         with ThreadPoolExecutor(
-            max_workers=max(len(pulses), (cpu_count() or 1) * 5)
+            max_workers=min(len(pulses), (cpu_count() or 1) * 5)
         ) as executor:
             iterator = executor.map(indicator_for, pulses)
 
