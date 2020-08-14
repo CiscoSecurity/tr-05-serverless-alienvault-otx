@@ -46,7 +46,7 @@ class Sighting(Mapping):
             sighting['observed_time']['start_time']
         )
 
-        sighting['description'] = pulse['description']
+        sighting['description'] = pulse['description'] or ''
 
         sighting['external_ids'] = [pulse['id']]
 
@@ -89,7 +89,7 @@ class Indicator(Mapping):
 
         indicator['external_ids'] = [pulse['id']]
 
-        indicator['short_description'] = pulse['description']
+        indicator['short_description'] = pulse['description'] or ''
 
         indicator['source_uri'] = (
             f"{pulse['url'].rstrip('/')}/pulse/{pulse['id']}"
