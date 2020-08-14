@@ -1,8 +1,14 @@
 from http import HTTPStatus
+from ssl import SSLCertVerificationError
 
 import requests
+from requests.exceptions import SSLError
 
-from api.errors import AuthenticationRequiredError, RelayError
+from api.errors import (
+    SSLCertificateVerificationFailedError,
+    AuthenticationRequiredError,
+    RelayError,
+)
 
 
 class Client:
@@ -17,11 +23,20 @@ class Client:
         self.headers['X-OTX-API-KEY'] = self.key
 
     def query(self, endpoint, headers=None, params=None):
-        response = requests.get(
-            f"{self.url.rstrip('/')}/{endpoint.lstrip('/')}",
-            headers={**self.headers, **(headers or {})},
-            params={**self.params, **(params or {})},
-        )
+        try:
+            response = requests.get(
+                f"{self.url.rstrip('/')}/{endpoint.lstrip('/')}",
+                headers={**self.headers, **(headers or {})},
+                params={**self.params, **(params or {})},
+            )
+        except SSLError as error:
+            # Go through a few layers of wrapped exceptions.
+            error = error.args[0].reason.args[0]
+            # Assume that a certificate could not be verified.
+            assert isinstance(error, SSLCertVerificationError)
+            raise SSLCertificateVerificationFailedError(
+                getattr(error, 'verify_message', error.args[0]).capitalize()
+            )
 
         if response.status_code == HTTPStatus.BAD_REQUEST:
             return None

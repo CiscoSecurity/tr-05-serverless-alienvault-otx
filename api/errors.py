@@ -30,3 +30,8 @@ class InvalidPayloadReceivedError(RelayError):
 class AuthenticationRequiredError(RelayError):
     CODE = 'authentication required'
     MESSAGE = 'Authentication required.'
+
+
+class SSLCertificateVerificationFailedError(RelayError):
+    CODE = 'ssl certificate verification failed'
+    MESSAGE = 'Unable to verify SSL certificate:'
