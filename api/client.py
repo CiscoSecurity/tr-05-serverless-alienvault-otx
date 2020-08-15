@@ -34,9 +34,10 @@ class Client:
             error = error.args[0].reason.args[0]
             # Assume that a certificate could not be verified.
             assert isinstance(error, SSLCertVerificationError)
-            raise SSLCertificateVerificationFailedError(
+            reason = (
                 getattr(error, 'verify_message', error.args[0]).capitalize()
             )
+            raise SSLCertificateVerificationFailedError(reason=reason)
 
         if response.status_code == HTTPStatus.BAD_REQUEST:
             return None
@@ -49,8 +50,7 @@ class Client:
 
         if response.status_code != HTTPStatus.OK:
             response_reason_phrase = HTTPStatus(response.status_code).phrase
-            raise RelayError(
-                f'Reason: {response.status_code} {response_reason_phrase}'
-            )
+            reason = f'Reason: {response.status_code} {response_reason_phrase}'
+            raise RelayError(reason=reason)
 
         return response.json()

@@ -27,7 +27,8 @@ def get_json(schema):
     error = schema.validate(data)
 
     if error:
-        raise InvalidPayloadReceivedError(json.dumps(error))
+        reason = json.dumps(error)
+        raise InvalidPayloadReceivedError(reason=reason)
 
     return data
 
