@@ -20,8 +20,9 @@ CTIM_DEFAULTS = {
 
 
 def transient_id(entity, base_value=None):
-    return (f'transient:{entity["type"]}-'
-            f'{uuid5(current_app.config["NAMESPACE_BASE"], base_value) if base_value else uuid4()}')
+    uuid = (uuid5(current_app.config['NAMESPACE_BASE'], base_value)
+            if base_value else uuid4())
+    return f'transient:{entity["type"]}-{uuid}'
 
 
 class Sighting(Mapping):
