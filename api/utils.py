@@ -21,9 +21,9 @@ def get_auth_token():
     try:
         scheme, token = request.headers['Authorization'].split()
         assert scheme.lower() == 'bearer'
+        return token
     except tuple(expected_errors) as error:
         raise AuthenticationRequiredError(expected_errors[error.__class__])
-    return token
 
 
 def get_jwt():
