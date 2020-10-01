@@ -15,7 +15,6 @@ from api.errors import (
 def get_auth_token():
     expected_errors = {
         KeyError: 'Authorization header is missing',
-        ValueError: 'JWT is missing',
         AssertionError: 'Wrong authorization type'
     }
     try:
@@ -26,7 +25,7 @@ def get_auth_token():
         raise AuthenticationRequiredError(expected_errors[error.__class__])
 
 
-def get_jwt():
+def get_key() -> Optional[str]:
     expected_errors = {
         KeyError: 'Wrong JWT payload structure',
         TypeError: '<SECRET_KEY> is missing',
@@ -35,13 +34,9 @@ def get_jwt():
     }
     token = get_auth_token()
     try:
-        return jwt.decode(token, current_app.config['SECRET_KEY'])
+        return jwt.decode(token, current_app.config['SECRET_KEY'])["key"]
     except tuple(expected_errors) as error:
         raise AuthenticationRequiredError(expected_errors[error.__class__])
-
-
-def get_key() -> Optional[str]:
-    return get_jwt().get('key')  # AVOTX_API_KEY
 
 
 def get_json(schema):
