@@ -29,7 +29,7 @@ class InvalidPayloadReceivedError(RelayError):
 
 class AuthenticationRequiredError(RelayError):
     CODE = 'authorization failed'
-    MESSAGE = 'Authorization failed.'
+    MESSAGE = 'Authorization failed:'
 
 
 class SSLCertificateVerificationFailedError(RelayError):

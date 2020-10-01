@@ -116,7 +116,7 @@ def test_enrich_call_with_valid_json_but_invalid_jwt_failure(avotx_api_route,
         'errors': [
             {
                 'code': 'authorization failed',
-                'message': ('Authorization failed. '
+                'message': ('Authorization failed: '
                             'Failed to decode JWT with provided key.'),
                 'type': 'fatal',
             }
@@ -515,7 +515,8 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
         (
             HTTPStatus.FORBIDDEN,
             'authorization failed',
-            'Authorization failed.',
+            ('Authorization failed: '
+             'Authorization failed on <3rd party name> side.'),
         ),
         (
             HTTPStatus.INTERNAL_SERVER_ERROR,

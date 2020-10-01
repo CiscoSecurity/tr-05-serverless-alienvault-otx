@@ -43,7 +43,9 @@ class Client:
             return None
 
         if response.status_code == HTTPStatus.FORBIDDEN:
-            raise AuthenticationRequiredError
+            raise AuthenticationRequiredError(
+                reason="Authorization failed on <3rd party name> side"
+            )
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             return None
