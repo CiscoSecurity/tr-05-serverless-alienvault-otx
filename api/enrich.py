@@ -30,7 +30,7 @@ def observe_observables():
     key = get_key()
 
     if key is None:
-        raise AuthenticationRequiredError("API Key is empty")
+        raise AuthenticationRequiredError
 
     url = current_app.config['AVOTX_URL']
     headers = {'User-Agent': current_app.config['CTR_USER_AGENT']}

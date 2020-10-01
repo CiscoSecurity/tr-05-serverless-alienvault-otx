@@ -29,7 +29,18 @@ class InvalidPayloadReceivedError(RelayError):
 
 class AuthenticationRequiredError(RelayError):
     CODE = 'authorization failed'
-    MESSAGE = 'Authorization failed:'
+    MESSAGE = 'Authorization failed'
+
+    def __init__(self, reason=None):
+        message = self.MESSAGE
+        if reason:
+            message += f': {reason}'
+        else:
+            message += "."
+
+        super().__init__(message)
+
+        self.message = message
 
 
 class SSLCertificateVerificationFailedError(RelayError):
