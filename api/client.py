@@ -44,7 +44,7 @@ class Client:
 
         if response.status_code == HTTPStatus.FORBIDDEN:
             raise AuthenticationRequiredError(
-                reason="Authorization failed on <3rd party name> side"
+                reason="Authorization failed on AlienVault OTX side"
             )
 
         if response.status_code == HTTPStatus.NOT_FOUND:
