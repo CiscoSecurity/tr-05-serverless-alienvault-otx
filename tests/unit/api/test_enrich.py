@@ -115,8 +115,8 @@ def test_enrich_call_with_valid_json_but_invalid_jwt_failure(avotx_api_route,
     expected_payload = {
         'errors': [
             {
-                'code': 'authentication failed',
-                'message': ('Authentication failed. '
+                'code': 'authorization failed',
+                'message': ('Authorization failed. '
                             'Failed to decode JWT with provided key.'),
                 'type': 'fatal',
             }
@@ -514,8 +514,8 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
     for status_code, error_code, error_message in [
         (
             HTTPStatus.FORBIDDEN,
-            'authentication failed',
-            'Authentication failed.',
+            'authorization failed',
+            'Authorization failed.',
         ),
         (
             HTTPStatus.INTERNAL_SERVER_ERROR,

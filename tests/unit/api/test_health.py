@@ -22,8 +22,8 @@ def test_health_call_with_invalid_jwt_failure(route, client, invalid_jwt):
     expected_payload = {
         'errors': [
             {
-                'code': 'authentication failed',
-                'message': ('Authentication failed. '
+                'code': 'authorization failed',
+                'message': ('Authorization failed. '
                             'Failed to decode JWT with provided key.'),
                 'type': 'fatal',
             }
@@ -83,8 +83,8 @@ def test_health_call_with_external_error_from_avotx_failure(route,
     for status_code, error_code, error_message in [
         (
             HTTPStatus.FORBIDDEN,
-            'authentication failed',
-            'Authentication failed.',
+            'authorization failed',
+            'Authorization failed.',
         ),
         (
             HTTPStatus.INTERNAL_SERVER_ERROR,
