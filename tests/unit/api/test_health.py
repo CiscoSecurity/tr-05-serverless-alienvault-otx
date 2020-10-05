@@ -23,8 +23,8 @@ def test_health_call_with_invalid_jwt_failure(route, client, invalid_jwt):
         'errors': [
             {
                 'code': 'authorization failed',
-                'message': ('Authorization failed. '
-                            'Failed to decode JWT with provided key.'),
+                'message': ('Authorization failed: '
+                            'Failed to decode JWT with provided key'),
                 'type': 'fatal',
             }
         ]
@@ -84,7 +84,8 @@ def test_health_call_with_external_error_from_avotx_failure(route,
         (
             HTTPStatus.FORBIDDEN,
             'authorization failed',
-            'Authorization failed.',
+            ('Authorization failed: '
+             'Authorization failed on AlienVault OTX side'),
         ),
         (
             HTTPStatus.INTERNAL_SERVER_ERROR,
