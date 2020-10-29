@@ -20,7 +20,7 @@ def test_positive_smoke_enrich_health(module_headers):
     """
     response_from_all_modules = enrich_post_health(
         **{'headers': module_headers}
-    )['data']
+    )
     health_from_alien_vault = get_observables(response_from_all_modules,
                                               MODULE_NAME)
     assert health_from_alien_vault['module'] == MODULE_NAME

@@ -37,9 +37,8 @@ def test_positive_smoke_observe_observables_empty_observables(
         **{'headers': module_headers}
     )
 
-    alien_vault_data = response_from_all_modules['data']
-
-    response_from_alien_vault = get_observables(alien_vault_data, MODULE_NAME)
+    response_from_alien_vault = get_observables(response_from_all_modules,
+                                                MODULE_NAME)
 
     assert response_from_alien_vault['module'] == MODULE_NAME
     assert response_from_alien_vault['module_instance_id']
