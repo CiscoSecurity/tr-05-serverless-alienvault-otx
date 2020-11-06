@@ -2,7 +2,7 @@ import os
 
 from uuid import NAMESPACE_X500
 
-from version import VERSION
+from __version__ import VERSION
 
 
 class Config:
