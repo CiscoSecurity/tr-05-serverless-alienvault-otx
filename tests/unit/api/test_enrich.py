@@ -83,8 +83,7 @@ def valid_json():
         },
         {
             'type': 'sha256',
-            'value': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',
-            # noqa: E501
+            'value': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',  # noqa: E501
         },
         {
             'type': 'ip',
@@ -195,8 +194,7 @@ def avotx_api_response(status_code):
                 'expiration': None,
             },
             {
-                'indicator': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',
-                # noqa: E501
+                'indicator': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',  # noqa: E501
                 'created': '1970-01-04T00:00:00',
                 'expiration': None,
             },
@@ -515,17 +513,17 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
                                                             valid_jwt):
     for status_code, error_code, error_message in [
         (
-                HTTPStatus.FORBIDDEN,
-                'authorization failed',
-                ('Authorization failed: '
-                 'Authorization failed on AlienVault OTX side'),
+            HTTPStatus.FORBIDDEN,
+            'authorization failed',
+            ('Authorization failed: '
+             'Authorization failed on AlienVault OTX side'),
         ),
         (
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'oops',
-                'Something went wrong. Reason: '
-                f'{HTTPStatus.INTERNAL_SERVER_ERROR.value} '
-                f'{HTTPStatus.INTERNAL_SERVER_ERROR.phrase}.',
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            'oops',
+            'Something went wrong. Reason: '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.value} '
+            f'{HTTPStatus.INTERNAL_SERVER_ERROR.phrase}.',
         ),
     ]:
         app = client.application
