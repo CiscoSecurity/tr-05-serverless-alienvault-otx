@@ -1,6 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from os import cpu_count
 
 from flask import Blueprint, current_app, g
 

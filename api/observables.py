@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from inspect import isabstract
 from operator import itemgetter
-from os import cpu_count
 from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
