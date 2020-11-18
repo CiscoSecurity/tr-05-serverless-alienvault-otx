@@ -9,7 +9,7 @@ from api.client import Client
 from api.errors import AuthenticationRequiredError
 from api.observables import Observable
 from api.schemas import ObservableSchema
-from api.utils import get_json, get_key, jsonify_data
+from api.utils import get_json, get_key, jsonify_data, get_workers
 
 enrich_api = Blueprint('enrich', __name__)
 
@@ -49,8 +49,9 @@ def observe_observables():
     def make_bundle(observable):
         return observable.observe(client, limit=limit)
 
-    workers_number = min((cpu_count() or 1) * 5, len(prepared_observables))
-    with ThreadPoolExecutor(max_workers=workers_number) as executor:
+    with ThreadPoolExecutor(
+            max_workers=get_workers(prepared_observables)
+    ) as executor:
         bundles = executor.map(make_bundle, prepared_observables)
 
     for bundle in bundles:
