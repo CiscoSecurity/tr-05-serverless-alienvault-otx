@@ -1,4 +1,6 @@
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from os import cpu_count
 
 from flask import Blueprint, current_app, g
 
@@ -38,13 +40,21 @@ def observe_observables():
     client = Client(key, url, headers=headers)
     limit = current_app.config['CTR_ENTITIES_LIMIT']
 
+    observables_ = []
     for observable in observables:
         observable = Observable.instance_for(**observable)
-        if observable is None:
-            continue
+        if observable is not None:
+            observables_.append(observable)
 
-        bundle = observable.observe(client, limit=limit)
-        g.bundle |= bundle
+    def make_bundle(observable):
+        return observable.observe(client, limit=limit)
+
+    workers_number = min((cpu_count() or 1) * 5, len(observables_))
+    with ThreadPoolExecutor(max_workers=workers_number) as executor:
+        bundles = executor.map(make_bundle, observables_)
+
+    for b in bundles:
+        g.bundle |= b
 
     data = g.bundle.json()
 
