@@ -1,7 +1,5 @@
 import os
 
-from uuid import NAMESPACE_X500
-
 from __version__ import VERSION
 
 
@@ -27,7 +25,5 @@ class Config:
 
     if CTR_ENTITIES_LIMIT > CTR_ENTITIES_LIMIT_MAX:
         CTR_ENTITIES_LIMIT = CTR_ENTITIES_LIMIT_MAX
-
-    NAMESPACE_BASE = NAMESPACE_X500
 
     AVOTX_URL = 'https://otx.alienvault.com'

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from inspect import isabstract
 from operator import itemgetter
-from os import cpu_count
 from typing import Optional, Dict, Union, List
 from urllib.parse import quote
 
@@ -10,6 +9,7 @@ from api.bundle import Bundle
 from api.client import Client
 from api.errors import RelayError
 from api.mappings import Sighting, Indicator, Relationship
+from api.utils import get_workers
 
 
 def _concrete_subclasses_of(cls):
@@ -127,9 +127,7 @@ class Observable(ABC):
 
             return indicator_for(pulse, page=(page + 1))
 
-        with ThreadPoolExecutor(
-            max_workers=min(len(pulses), (cpu_count() or 1) * 5)
-        ) as executor:
+        with ThreadPoolExecutor(max_workers=get_workers(pulses)) as executor:
             iterator = executor.map(indicator_for, pulses)
 
         indicators = []

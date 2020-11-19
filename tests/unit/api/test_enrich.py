@@ -549,19 +549,6 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
             'url': 'url',
         }
 
-        observable = next(
-            observable
-            for observable in observables
-            if observable['type'] in observable_types
-        )
-
-        category = observable_types[observable['type']]
-
-        expected_url = (
-            f"{app.config['AVOTX_URL']}/api/v1/indicators/{category}/"
-            f"{quote(observable['value'], safe='@:')}/general"
-        )
-
         expected_headers = {
             'User-Agent': app.config['CTR_USER_AGENT'],
             'X-OTX-API-KEY': (
@@ -571,9 +558,24 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
 
         expected_params = {}
 
-        avotx_api_request.assert_called_once_with(expected_url,
-                                                  headers=expected_headers,
-                                                  params=expected_params)
+        expected_urls = []
+        for observable in valid_json:
+            if observable['type'] not in observable_types:
+                continue
+
+            category = observable_types[observable['type']]
+
+            expected_urls.append(
+                f"{app.config['AVOTX_URL']}/api/v1/indicators/{category}/"
+                f"{quote(observable['value'], safe='@:')}/general"
+            )
+
+        avotx_api_request.assert_has_calls([
+            mock.call(expected_url,
+                      headers=expected_headers,
+                      params=expected_params)
+            for expected_url in expected_urls
+        ], any_order=True)
 
         avotx_api_request.reset_mock()
 

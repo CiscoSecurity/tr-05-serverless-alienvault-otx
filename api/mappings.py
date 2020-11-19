@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from uuid import uuid4, uuid5
+from uuid import uuid4, uuid5, NAMESPACE_X500
 from typing import Dict, Any
-from flask import current_app
 
 JSON = Dict[str, Any]
+NAMESPACE_BASE = NAMESPACE_X500
 
 
 class Mapping(ABC):
@@ -20,7 +20,7 @@ CTIM_DEFAULTS = {
 
 
 def transient_id(entity, base_value=None):
-    uuid = (uuid5(current_app.config['NAMESPACE_BASE'], base_value)
+    uuid = (uuid5(NAMESPACE_BASE, base_value)
             if base_value else uuid4())
     return f'transient:{entity["type"]}-{uuid}'
 

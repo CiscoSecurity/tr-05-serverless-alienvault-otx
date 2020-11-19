@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
 from flask import Blueprint, current_app, g
@@ -7,7 +8,7 @@ from api.client import Client
 from api.errors import AuthenticationRequiredError
 from api.observables import Observable
 from api.schemas import ObservableSchema
-from api.utils import get_json, get_key, jsonify_data
+from api.utils import get_json, get_key, jsonify_data, get_workers
 
 enrich_api = Blueprint('enrich', __name__)
 
@@ -23,7 +24,7 @@ def deliberate_observables():
 
 @enrich_api.route('/observe/observables', methods=['POST'])
 def observe_observables():
-    observables = get_observables()
+    input_observables = get_observables()
 
     g.bundle = Bundle()
 
@@ -38,12 +39,21 @@ def observe_observables():
     client = Client(key, url, headers=headers)
     limit = current_app.config['CTR_ENTITIES_LIMIT']
 
-    for observable in observables:
-        observable = Observable.instance_for(**observable)
-        if observable is None:
-            continue
+    prepared_observables = []
+    for input_observable in input_observables:
+        prepared_observable = Observable.instance_for(**input_observable)
+        if prepared_observable is not None:
+            prepared_observables.append(prepared_observable)
 
-        bundle = observable.observe(client, limit=limit)
+    def make_bundle(observable):
+        return observable.observe(client, limit=limit)
+
+    with ThreadPoolExecutor(
+            max_workers=get_workers(prepared_observables)
+    ) as executor:
+        bundles = executor.map(make_bundle, prepared_observables)
+
+    for bundle in bundles:
         g.bundle |= bundle
 
     data = g.bundle.json()

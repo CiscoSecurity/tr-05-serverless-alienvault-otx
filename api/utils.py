@@ -1,4 +1,5 @@
 import json
+from os import cpu_count
 from typing import Optional
 
 from authlib.jose import jwt
@@ -64,3 +65,7 @@ def jsonify_errors(error: RelayError):
             payload['data'] = data
 
     return jsonify(payload)
+
+
+def get_workers(iterable):
+    return min((cpu_count() or 1) * 5, len(iterable))
