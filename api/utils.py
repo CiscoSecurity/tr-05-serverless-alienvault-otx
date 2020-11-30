@@ -68,4 +68,4 @@ def jsonify_errors(error: RelayError):
 
 
 def get_workers(iterable):
-    return min((cpu_count() or 1) * 5, len(iterable))
+    return min((cpu_count() or 1) * 5, len(iterable)) or 1
