@@ -3,8 +3,8 @@ from random import sample
 from unittest import mock
 from urllib.parse import quote
 
-from authlib.jose import jwt
 from pytest import fixture
+import jwt
 
 from api.mappings import Sighting, Indicator, Relationship
 from .utils import headers
@@ -58,75 +58,6 @@ def avotx_api_route(request):
     return request.param
 
 
-@fixture(scope='module')
-def valid_json():
-    return [
-        {
-            'type': 'device',
-            'value': 'laptop',
-        },
-        {
-            'type': 'domain',
-            'value': 'jsebnawkndwandawd.sh',
-        },
-        {
-            'type': 'email',
-            'value': 'msalem@webalo.com',
-        },
-        {
-            'type': 'md5',
-            'value': 'd8414d743778cae103c15461200ec64d',
-        },
-        {
-            'type': 'sha1',
-            'value': '4f79d1a01b9b5cb3cb65a9911db2a02ea3bb7c45',
-        },
-        {
-            'type': 'sha256',
-            'value': 'efdd3ee0f816eba8ab1cba3643e42b40aaa16654d5120c67169d1b002e7f714d',  # noqa: E501
-        },
-        {
-            'type': 'ip',
-            'value': '99.85.80.169',
-        },
-        {
-            'type': 'ipv6',
-            'value': '2001:14ba:1f00:0:1117:e76e:843d:f803',
-        },
-        {
-            'type': 'url',
-            'value': 'http://blockchains.pk/nw_NIHbAj35.bin',
-        },
-        {
-            'type': 'user',
-            'value': 'admin',
-        },
-    ]
-
-
-def test_enrich_call_with_valid_json_but_invalid_jwt_failure(avotx_api_route,
-                                                             client,
-                                                             valid_json,
-                                                             invalid_jwt):
-    response = client.post(avotx_api_route,
-                           json=valid_json,
-                           headers=headers(invalid_jwt))
-
-    expected_payload = {
-        'errors': [
-            {
-                'code': 'authorization failed',
-                'message': ('Authorization failed: '
-                            'Failed to decode JWT with provided key'),
-                'type': 'fatal',
-            }
-        ]
-    }
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.get_json() == expected_payload
-
-
 def all_routes():
     yield '/deliberate/observables'
     yield '/observe/observables'
@@ -138,12 +69,6 @@ def all_routes():
          ids=lambda route: f'POST {route}')
 def any_route(request):
     return request.param
-
-
-@fixture(scope='function')
-def avotx_api_request():
-    with mock.patch('requests.get') as mock_request:
-        yield mock_request
 
 
 def avotx_api_response(status_code):
@@ -423,9 +348,10 @@ def expected_payload(any_route, client, valid_json):
 def test_enrich_call_success(any_route,
                              client,
                              valid_json,
-                             avotx_api_request,
+                             mock_request,
                              valid_jwt,
-                             expected_payload):
+                             expected_payload,
+                             get_public_key):
     app = client.application
 
     response = None
@@ -438,11 +364,13 @@ def test_enrich_call_success(any_route,
         side_effect = map
 
         with mock.patch(target, side_effect=side_effect):
-            avotx_api_request.return_value = avotx_api_response(HTTPStatus.OK)
+            mock_request.side_effect = (
+                    [get_public_key] + [avotx_api_response(HTTPStatus.OK)] * 14
+            )
 
             response = client.post(any_route,
                                    json=valid_json,
-                                   headers=headers(valid_jwt))
+                                   headers=headers(valid_jwt()))
 
             observable_types = {
                 'domain': 'domain',
@@ -459,7 +387,9 @@ def test_enrich_call_success(any_route,
             expected_headers = {
                 'User-Agent': app.config['CTR_USER_AGENT'],
                 'X-OTX-API-KEY': (
-                    jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
+                    jwt.decode(
+                        valid_jwt(), options={'verify_signature': False}
+                    )['key']
                 ),
             }
 
@@ -489,7 +419,7 @@ def test_enrich_call_success(any_route,
                     'page': 1,
                 })
 
-            avotx_api_request.assert_has_calls([
+            mock_request.assert_has_calls([
                 mock.call(expected_url,
                           headers=expected_headers,
                           params=expected_params)
@@ -506,11 +436,10 @@ def test_enrich_call_success(any_route,
     assert response.get_json() == expected_payload
 
 
-def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
-                                                            client,
-                                                            valid_json,
-                                                            avotx_api_request,
-                                                            valid_jwt):
+def test_enrich_call_with_external_error_from_avotx_failure(
+        avotx_api_route, client, valid_json, mock_request, valid_jwt,
+        get_public_key):
+
     for status_code, error_code, error_message in [
         (
             HTTPStatus.FORBIDDEN,
@@ -528,7 +457,9 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
     ]:
         app = client.application
 
-        avotx_api_request.return_value = avotx_api_response(status_code)
+        mock_request.side_effect = [
+            get_public_key, avotx_api_response(status_code)
+        ]
 
         def shuffle(sequence):
             return sample(sequence, len(sequence))
@@ -537,7 +468,7 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
 
         response = client.post(avotx_api_route,
                                json=observables,
-                               headers=headers(valid_jwt))
+                               headers=headers(valid_jwt()))
 
         observable_types = {
             'domain': 'domain',
@@ -552,7 +483,9 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
         expected_headers = {
             'User-Agent': app.config['CTR_USER_AGENT'],
             'X-OTX-API-KEY': (
-                jwt.decode(valid_jwt, app.config['SECRET_KEY'])['key']
+                jwt.decode(
+                    valid_jwt(), options={'verify_signature': False}
+                )['key']
             ),
         }
 
@@ -570,14 +503,14 @@ def test_enrich_call_with_external_error_from_avotx_failure(avotx_api_route,
                 f"{quote(observable['value'], safe='@:')}/general"
             )
 
-        avotx_api_request.assert_has_calls([
+        mock_request.assert_has_calls([
             mock.call(expected_url,
                       headers=expected_headers,
                       params=expected_params)
             for expected_url in expected_urls
         ], any_order=True)
 
-        avotx_api_request.reset_mock()
+        mock_request.reset_mock()
 
         expected_payload = {
             'errors': [
