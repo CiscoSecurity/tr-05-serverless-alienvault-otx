@@ -46,3 +46,8 @@ class AuthenticationRequiredError(RelayError):
 class SSLCertificateVerificationFailedError(RelayError):
     CODE = 'ssl certificate verification failed'
     MESSAGE = 'Unable to verify SSL certificate:'
+
+
+class WatchdogError(RelayError):
+    CODE = 'health check failed'
+    MESSAGE = 'Invalid Health Check'
