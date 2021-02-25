@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from unittest.mock import patch
 
 from api.errors import AuthenticationRequiredError
 from api.utils import (
@@ -74,7 +73,6 @@ def test_call_with_wrong_auth_type(
     )
 
 
-@patch('requests.get')
 def test_call_with_wrong_jwks_host(
         mock_request, route, client, valid_json, valid_jwt,
         authorization_errors_expected_payload, get_public_key
@@ -92,7 +90,6 @@ def test_call_with_wrong_jwks_host(
         )
 
 
-@patch('requests.get')
 def test_call_with_wrong_jwt_payload_structure(
         mock_request, route, client, valid_json, valid_jwt,
         authorization_errors_expected_payload, get_public_key
@@ -109,7 +106,6 @@ def test_call_with_wrong_jwt_payload_structure(
     )
 
 
-@patch('requests.get')
 def test_call_with_missing_jwks_host(
         mock_request, route, client, valid_json, valid_jwt,
         get_public_key, authorization_errors_expected_payload
