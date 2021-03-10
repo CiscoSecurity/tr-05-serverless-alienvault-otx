@@ -443,7 +443,7 @@ def test_enrich_call_with_external_error_from_avotx_failure(
     for status_code, error_code, error_message in [
         (
             HTTPStatus.FORBIDDEN,
-            'authorization failed',
+            'authorization error',
             ('Authorization failed: '
              'Authorization failed on AlienVault OTX side'),
         ),

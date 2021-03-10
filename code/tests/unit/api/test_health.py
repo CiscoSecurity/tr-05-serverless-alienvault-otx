@@ -70,7 +70,7 @@ def test_health_call_with_external_error_from_avotx_failure(route,
     for status_code, error_code, error_message in [
         (
             HTTPStatus.FORBIDDEN,
-            'authorization failed',
+            'authorization error',
             ('Authorization failed: '
              'Authorization failed on AlienVault OTX side'),
         ),
