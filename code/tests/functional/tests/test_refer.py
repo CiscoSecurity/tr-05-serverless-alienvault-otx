@@ -4,7 +4,8 @@ from ctrlibrary.core.utils import get_observables
 from ctrlibrary.threatresponse.enrich import enrich_refer_observables
 from tests.functional.tests.constants import (
     MODULE_NAME,
-    OBSERVABLE_HUMAN_READABLE_NAME
+    OBSERVABLE_HUMAN_READABLE_NAME,
+    INTEGRATION_NAME
 )
 
 
@@ -52,5 +53,5 @@ def test_positive_smoke_enrich_refer_observables(module_headers, observable,
         f'Search for this {OBSERVABLE_HUMAN_READABLE_NAME[observable_type]}')
     assert (response_from_alien_vault['description']) == (
         f'Lookup this {OBSERVABLE_HUMAN_READABLE_NAME[observable_type]} on '
-        f'{MODULE_NAME}')
-    assert response_from_alien_vault['categories'] == [MODULE_NAME, 'Search']
+        f'{INTEGRATION_NAME}')
+    assert response_from_alien_vault['categories'] == [INTEGRATION_NAME, 'Search']

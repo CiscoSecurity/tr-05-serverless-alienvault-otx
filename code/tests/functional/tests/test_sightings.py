@@ -4,7 +4,8 @@ from ctrlibrary.threatresponse.enrich import enrich_observe_observables
 from tests.functional.tests.constants import (
     MODULE_NAME,
     ALIEN_VAULT_URL,
-    CONFIDENCE_LEVEL
+    CONFIDENCE_LEVEL,
+    INTEGRATION_NAME
 )
 
 
@@ -55,7 +56,7 @@ def test_positive_smoke_enrich_sightings(module_headers, observable,
         assert sighting['schema_version']
         assert sighting['observables'] == observables
         assert sighting['type'] == 'sighting'
-        assert sighting['source'] == MODULE_NAME
+        assert sighting['source'] == INTEGRATION_NAME
         assert sighting['external_ids']
         assert sighting['title']
         assert sighting['internal'] is False
