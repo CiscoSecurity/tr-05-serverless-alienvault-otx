@@ -4,7 +4,8 @@ from ctrlibrary.threatresponse.enrich import enrich_observe_observables
 from tests.functional.tests.constants import (
     MODULE_NAME,
     ALIEN_VAULT_URL,
-    CONFIDENCE_LEVEL
+    CONFIDENCE_LEVEL,
+    INTEGRATION_NAME
 )
 
 
@@ -56,7 +57,7 @@ def test_positive_smoke_enrich_indicators(module_headers, observable,
         assert indicator['producer']
         assert indicator['schema_version']
         assert indicator['type'] == 'indicator'
-        assert indicator['source'] == MODULE_NAME
+        assert indicator['source'] == INTEGRATION_NAME
         assert indicator['external_ids']
         assert 'short_description' in indicator
         assert indicator['title']

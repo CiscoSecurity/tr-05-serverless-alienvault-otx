@@ -1,4 +1,5 @@
-MODULE_NAME = 'AlienVault OTX'
+MODULE_NAME = 'AlienVault Open Threat Exchange [Conf Token]'
+INTEGRATION_NAME = 'AlienVault OTX'
 OBSERVABLE_HUMAN_READABLE_NAME = {
     'ip': 'IP',
     'ipv6': 'IPv6',
