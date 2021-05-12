@@ -1,4 +1,5 @@
 import json
+from json.decoder import JSONDecodeError
 import jwt
 from os import cpu_count
 from typing import Optional
@@ -61,6 +62,7 @@ def get_public_key(jwks_host, token):
     expected_errors = {
         ConnectionError: WRONG_JWKS_HOST,
         InvalidURL: WRONG_JWKS_HOST,
+        JSONDecodeError: WRONG_JWKS_HOST
     }
     try:
         response = requests.get(f"https://{jwks_host}/.well-known/jwks")
