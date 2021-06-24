@@ -1,6 +1,4 @@
 from http import HTTPStatus
-from pytest import fixture
-from requests.exceptions import ConnectionError, InvalidURL
 
 from api.errors import AuthenticationRequiredError
 from api.utils import (
@@ -8,11 +6,15 @@ from api.utils import (
     WRONG_AUTH_TYPE,
     WRONG_JWKS_HOST,
     WRONG_PAYLOAD_STRUCTURE,
+    JWK_HOST_MISSING,
     WRONG_KEY,
     WRONG_JWT_STRUCTURE,
     WRONG_AUDIENCE,
     KID_NOT_FOUND
 )
+from pytest import fixture
+from requests.exceptions import ConnectionError, InvalidURL
+
 from .utils import headers
 
 CODE = AuthenticationRequiredError.CODE
@@ -116,7 +118,7 @@ def test_call_with_missing_jwks_host(
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
-        WRONG_JWKS_HOST
+        JWK_HOST_MISSING
     )
 
 
