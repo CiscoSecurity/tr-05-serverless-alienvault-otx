@@ -59,7 +59,6 @@ def avotx_api_route(request):
 
 
 def all_routes():
-    yield '/deliberate/observables'
     yield '/observe/observables'
     yield '/refer/observables'
 
