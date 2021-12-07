@@ -2,13 +2,16 @@ from http import HTTPStatus
 from ssl import SSLCertVerificationError
 
 import requests
-from requests.exceptions import SSLError
+from requests.exceptions import SSLError, InvalidHeader
 
 from api.errors import (
     SSLCertificateVerificationFailedError,
     AuthenticationRequiredError,
     RelayError,
 )
+
+
+AUTHORIZATION_FAILED = "Authorization failed on AlienVault OTX side"
 
 
 class Client:
@@ -38,14 +41,14 @@ class Client:
                 getattr(error, 'verify_message', error.args[0]).capitalize()
             )
             raise SSLCertificateVerificationFailedError(reason=reason)
+        except (InvalidHeader, UnicodeEncodeError):
+            raise AuthenticationRequiredError(reason=AUTHORIZATION_FAILED)
 
         if response.status_code == HTTPStatus.BAD_REQUEST:
             return None
 
         if response.status_code == HTTPStatus.FORBIDDEN:
-            raise AuthenticationRequiredError(
-                reason="Authorization failed on AlienVault OTX side"
-            )
+            raise AuthenticationRequiredError(reason=AUTHORIZATION_FAILED)
 
         if response.status_code == HTTPStatus.NOT_FOUND:
             return None
